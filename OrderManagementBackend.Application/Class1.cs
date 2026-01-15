@@ -1,4 +1,4 @@
-﻿namespace OrderManagementBackend.Application
+﻿namespace OrderManagementBackend.Domain
 {
     public class Class1
     {
