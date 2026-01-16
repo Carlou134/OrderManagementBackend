@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OrderManagementBackend.Api.Middlewares;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Application.Mappings;
 using OrderManagementBackend.Application.Services;
@@ -29,21 +30,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:3000" };
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandler>();
+
+app.UseCors("AllowReact");
 
 if (app.Environment.IsDevelopment())
 {

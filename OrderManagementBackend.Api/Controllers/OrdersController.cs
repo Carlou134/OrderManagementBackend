@@ -85,14 +85,14 @@ namespace OrderManagementBackend.Api.Controllers
         }
 
         [HttpPost("changestatus/{id}")]
-        public async Task<ActionResult> ChangeStatus([FromBody]OrderStatus status, int id)
+        public async Task<ActionResult> ChangeStatus([FromBody]ChangeOrderStatusDto request, int id)
         {
-            if (!Enum.IsDefined(typeof(OrderStatus), status))
+            if (!Enum.IsDefined(typeof(OrderStatus), request.status))
             {
                 return BadRequest(new { error = "Invalid status value" });
             }
 
-            var result = await _orderService.ChangeStatus(status, id);
+            var result = await _orderService.ChangeStatus(request.status, id);
 
             return (result) ? NoContent() : NotFound();
         }
