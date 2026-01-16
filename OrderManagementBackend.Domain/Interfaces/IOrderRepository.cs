@@ -7,6 +7,6 @@
         Task<bool> UpdateOrder(Order order);
         Task<bool> DeleteOrder(int id);
         Task<Order?> GetOrderById(int id);
-        Task<bool> ChangeOrderStatus(OrderStatus orderStatus, int id);
+        Task<bool> IsOrderInOrdersAsync(int orderId);
     }
 }

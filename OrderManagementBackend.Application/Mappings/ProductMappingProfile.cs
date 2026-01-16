@@ -12,9 +12,11 @@ namespace OrderManagementBackend.Application.Mappings
             CreateMap<Product, ProductDto>();
 
             CreateMap<CreateProductDto, Product>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderProducts, opt => opt.Ignore());
 
-            CreateMap<UpdateProductDto, Product>();
+            CreateMap<UpdateProductDto, Product>()
+                .ForMember(dest => dest.OrderProducts, opt => opt.Ignore());
         }
     }
 }

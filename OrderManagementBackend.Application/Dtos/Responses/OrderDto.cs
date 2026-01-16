@@ -9,6 +9,7 @@ namespace OrderManagementBackend.Application.Dtos.Responses
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public OrderStatus Status { get; set; }
         public decimal FinalPrice { get; set; }
+        public int NumberProducts { get; set; }
         public ICollection<OrderProductDto>? OrderProducts { get; set; }
     }
 }

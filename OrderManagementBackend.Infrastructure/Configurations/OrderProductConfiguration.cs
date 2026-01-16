@@ -20,12 +20,12 @@ namespace OrderManagementBackend.Infrastructure.Configurations
             builder.Property(x => x.TotalPrice).IsRequired().HasPrecision(10, 2);
 
             builder.HasOne(x => x.Order)
-                .WithMany(x => x.OrderProduct)
+                .WithMany(x => x.OrderProducts)
                 .HasForeignKey(x => x.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(x => x.Product)
-                .WithMany(x => x.OrderProduct)
+                .WithMany(x => x.OrderProducts)
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

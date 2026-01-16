@@ -95,5 +95,30 @@ namespace OrderManagementBackend.Infrastructure.Repositories
             }
         }
 
+        public async Task<bool> IsProductInOrdersAsync(int productId)
+        {
+            try
+            {
+                return await _context.OrderProduct.AnyAsync(x => x.ProductId == productId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consulting the product in database");
+                throw;
+            }
+        }
+
+        public async Task<IReadOnlyCollection<Product>> GetByIdsAsync(List<int> ids)
+        {
+            try
+            {
+                return await _context.Product.Where(x => ids.Contains(x.Id)).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consulting the product in database");
+                throw;
+            }
+        }
     }
 }

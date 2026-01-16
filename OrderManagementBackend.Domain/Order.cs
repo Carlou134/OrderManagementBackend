@@ -7,7 +7,7 @@
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public OrderStatus Status { get; set; }
         public decimal FinalPrice { get; set; }
-        public ICollection<OrderProduct> OrderProduct { get; set; } = new List<OrderProduct>();
+        public ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
     }
 
     public enum OrderStatus

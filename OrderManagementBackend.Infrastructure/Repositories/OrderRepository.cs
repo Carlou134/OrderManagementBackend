@@ -21,7 +21,7 @@ namespace OrderManagementBackend.Infrastructure.Repositories
         {
             try
             {
-                return await _context.Order.Include(x => x.OrderProduct).AsNoTracking().ToListAsync();
+                return await _context.Order.Include(x => x.OrderProducts).AsNoTracking().ToListAsync();
             }
             catch (Exception ex)
             {
@@ -95,24 +95,15 @@ namespace OrderManagementBackend.Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> ChangeOrderStatus(OrderStatus orderStatus, int id)
+        public async Task<bool> IsOrderInOrdersAsync(int orderId)
         {
             try
             {
-                var order = await GetOrderById(id);
-
-                if(order != null)
-                {
-                    order.Status = orderStatus;
-                    await _context.SaveChangesAsync();
-                    return true;
-                }
-
-                return false;
+                return await _context.OrderProduct.AnyAsync(x => x.OrderId == orderId);
             }
-            catch (DbUpdateException ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating the order in the database");
+                _logger.LogError(ex, "Error consulting the order in database");
                 throw;
             }
         }
