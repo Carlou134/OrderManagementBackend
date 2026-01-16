@@ -16,6 +16,25 @@ namespace OrderManagementBackend.Infrastructure.Configurations
             builder.Property(x => x.Name).IsRequired().HasMaxLength(50);
 
             builder.Property(x => x.UnitPrice).IsRequired().HasPrecision(10, 2);
+
+            builder.HasData(new Product
+            {
+                Id = 1,
+                Name = "Laptop Lenovo ThinkPad E14",
+                UnitPrice = 3200.00m
+            },
+                new Product
+                {
+                    Id = 2,
+                    Name = "Mouse Logitech M185",
+                    UnitPrice = 75.50m
+                },
+                new Product
+                {
+                    Id = 3,
+                    Name = "Teclado Mecánico Redragon Kumara",
+                    UnitPrice = 249.90m
+                });
         }
     }
 }
