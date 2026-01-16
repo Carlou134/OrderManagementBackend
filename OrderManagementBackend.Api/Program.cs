@@ -32,19 +32,21 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact", policy =>
-    {
-        policy.WithOrigins("http://localhost:5173")
-        .AllowAnyHeader()
-        .AllowAnyMethod();
-    });
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin();
+        });
 });
 
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionHandler>();
 
-app.UseCors("AllowReact");
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {
