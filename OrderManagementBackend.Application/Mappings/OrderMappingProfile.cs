@@ -10,8 +10,7 @@ namespace OrderManagementBackend.Application.Mappings
         public OrderMappingProfile()
         {
             CreateMap<Order, OrderDto>()
-                .ForMember(dest => dest.NumberProducts, opt => opt.MapFrom(x => x.OrderProducts.Count))
-                .ForMember(dest => dest.NumberProducts, opt => opt.Ignore());
+                .ForMember(dest => dest.NumberProducts, opt => opt.MapFrom(x => x.OrderProducts.Count));
 
             CreateMap<CreateOrderDto, Order>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

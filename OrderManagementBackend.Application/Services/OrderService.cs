@@ -117,9 +117,10 @@ namespace OrderManagementBackend.Application.Services
 
             if (order != null)
             {
-                var isInOrders = await _repository.IsOrderInOrdersAsync(id);
-
-                if (isInOrders) throw new InvalidOperationException("Cannot delete order because it is used in existing orders");
+                if(order.Status == OrderStatus.Completed)
+                {
+                    throw new InvalidOperationException("Cannot delete completed orders");
+                }
 
                 return await _repository.DeleteOrder(id);
             }

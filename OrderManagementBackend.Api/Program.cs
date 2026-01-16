@@ -1,11 +1,29 @@
 using Microsoft.EntityFrameworkCore;
+using OrderManagementBackend.Application.Interfaces;
+using OrderManagementBackend.Application.Mappings;
+using OrderManagementBackend.Application.Services;
+using OrderManagementBackend.Domain.Interfaces;
 using OrderManagementBackend.Infrastructure.Data;
+using OrderManagementBackend.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DbOrders");
 builder.Services.AddDbContext<OrdersContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<OrderMappingProfile>();
+    cfg.AddProfile<ProductMappingProfile>();
+    cfg.AddProfile<OrderProductMappingProfile>();
+});
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

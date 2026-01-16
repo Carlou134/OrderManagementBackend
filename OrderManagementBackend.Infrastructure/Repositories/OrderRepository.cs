@@ -49,7 +49,7 @@ namespace OrderManagementBackend.Infrastructure.Repositories
         {
             try
             {
-                return await _context.Order.FirstOrDefaultAsync(x => x.Id == id);
+                return await _context.Order.Include(x => x.OrderProducts).FirstOrDefaultAsync(x => x.Id == id);
             }
             catch (Exception ex)
             {
