@@ -134,6 +134,11 @@ namespace OrderManagementBackend.Application.Services
 
             if (order != null)
             {
+                if (order.Status == OrderStatus.Completed)
+                {
+                    throw new InvalidOperationException("Cannot change status of completed orders");
+                }
+
                 order.Status = status;
                 return await _repository.UpdateOrder(order);
             }
