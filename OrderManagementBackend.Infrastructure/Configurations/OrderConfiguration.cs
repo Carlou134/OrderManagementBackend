@@ -20,6 +20,14 @@ namespace OrderManagementBackend.Infrastructure.Configurations
             builder.Property(x => x.Status).HasConversion<byte>();
 
             builder.Property(x => x.FinalPrice).IsRequired().HasPrecision(10,2);
+
+            builder.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            builder.Property(x => x.UpdatedAt);
+
+            builder.Property(x => x.CreatedBy).IsRequired().HasMaxLength(100);
+
+            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
         }
     }
 }

@@ -19,6 +19,14 @@ namespace OrderManagementBackend.Infrastructure.Configurations
 
             builder.Property(x => x.TotalPrice).IsRequired().HasPrecision(10, 2);
 
+            builder.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            builder.Property(x => x.UpdatedAt);
+
+            builder.Property(x => x.CreatedBy).IsRequired().HasMaxLength(100);
+
+            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
+
             builder.HasOne(x => x.Order)
                 .WithMany(x => x.OrderProducts)
                 .HasForeignKey(x => x.OrderId)

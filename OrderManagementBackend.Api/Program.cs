@@ -3,7 +3,9 @@ using OrderManagementBackend.Api.Middlewares;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Application.Mappings;
 using OrderManagementBackend.Application.Services;
+using OrderManagementBackend.Domain.Common;
 using OrderManagementBackend.Domain.Interfaces;
+using OrderManagementBackend.Infrastructure.Common;
 using OrderManagementBackend.Infrastructure.Data;
 using OrderManagementBackend.Infrastructure.Repositories;
 
@@ -12,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DbOrders");
 builder.Services.AddDbContext<OrdersContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddScoped<ICurrentUserProvider, CurrentUserProvider>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
