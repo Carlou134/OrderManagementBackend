@@ -90,19 +90,39 @@ namespace OrderManagementBackend.Application.Services
                     throw new BusinessRuleException("One or more products not found");
                 }
 
-                order.OrderProducts.Clear();
-                order.OrderProducts = request.Products.Select(x =>
-                {
-                    var product = products.First(pr => pr.Id == x.ProductId);
+                var requestedProductIds = request.Products.Select(x => x.ProductId).ToHashSet();
 
-                    return new OrderProduct
+                var itemsToRemove = order.OrderProducts
+                    .Where(x => !requestedProductIds.Contains(x.ProductId))
+                    .ToList();
+
+                foreach (var item in itemsToRemove)
+                {
+                    order.OrderProducts.Remove(item);
+                }
+
+                foreach (var requestedProduct in request.Products)
+                {
+                    var product = products.First(pr => pr.Id == requestedProduct.ProductId);
+                    var existingItem = order.OrderProducts.FirstOrDefault(x => x.ProductId == requestedProduct.ProductId);
+
+                    if (existingItem != null)
                     {
-                        ProductId = x.ProductId,
-                        Quantity = x.Quantity,
-                        UnitPrice = product.UnitPrice,
-                        TotalPrice = x.Quantity * product.UnitPrice
-                    };
-                }).ToList();
+                        existingItem.Quantity = requestedProduct.Quantity;
+                        existingItem.UnitPrice = product.UnitPrice;
+                        existingItem.TotalPrice = requestedProduct.Quantity * product.UnitPrice;
+                    }
+                    else
+                    {
+                        order.OrderProducts.Add(new OrderProduct
+                        {
+                            ProductId = requestedProduct.ProductId,
+                            Quantity = requestedProduct.Quantity,
+                            UnitPrice = product.UnitPrice,
+                            TotalPrice = requestedProduct.Quantity * product.UnitPrice
+                        });
+                    }
+                }
 
                 order.OrderNumber = request.OrderNumber;
                 order.FinalPrice = order.OrderProducts.Sum(x => x.TotalPrice);
