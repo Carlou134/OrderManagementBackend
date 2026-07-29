@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Interfaces;
-using OrderManagementBackend.Domain;
 
 namespace OrderManagementBackend.Api.Controllers
 {
@@ -25,11 +24,6 @@ namespace OrderManagementBackend.Api.Controllers
         [HttpPost("create")]
         public async Task<ActionResult> CreateOrder([FromBody] CreateOrderDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _orderService.CreateOrder(request);
 
             return (result) ? NoContent() : NotFound();
@@ -41,11 +35,6 @@ namespace OrderManagementBackend.Api.Controllers
             if (id <= 0)
             {
                 return BadRequest("Invalid OrderId");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
             }
 
             var result = await _orderService.UpdateOrder(id, request);
@@ -87,11 +76,6 @@ namespace OrderManagementBackend.Api.Controllers
         [HttpPost("changestatus/{id}")]
         public async Task<ActionResult> ChangeStatus([FromBody]ChangeOrderStatusDto request, int id)
         {
-            if (!Enum.IsDefined(typeof(OrderStatus), request.status))
-            {
-                return BadRequest(new { error = "Invalid status value" });
-            }
-
             var result = await _orderService.ChangeStatus(request.status, id);
 
             return (result) ? NoContent() : NotFound();

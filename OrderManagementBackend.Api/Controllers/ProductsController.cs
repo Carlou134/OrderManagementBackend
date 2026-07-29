@@ -24,11 +24,6 @@ namespace OrderManagementBackend.Api.Controllers
         [HttpPost("create")]
         public async Task<ActionResult> CreateProduct([FromBody] CreateProductDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _productService.CreateProduct(request);
 
             return (result) ? NoContent() : NotFound();
@@ -40,11 +35,6 @@ namespace OrderManagementBackend.Api.Controllers
             if (id <= 0)
             {
                 return BadRequest("Invalid ProductId");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
             }
 
             var result = await _productService.UpdateProduct(id, request);

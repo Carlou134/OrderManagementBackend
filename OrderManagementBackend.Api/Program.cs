@@ -1,8 +1,11 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using OrderManagementBackend.Api.Filters;
 using OrderManagementBackend.Api.Middlewares;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Application.Mappings;
 using OrderManagementBackend.Application.Services;
+using OrderManagementBackend.Application.Validators.Order;
 using OrderManagementBackend.Domain.Common;
 using OrderManagementBackend.Domain.Interfaces;
 using OrderManagementBackend.Infrastructure.Common;
@@ -30,7 +33,8 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>());
+builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderDtoValidator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
