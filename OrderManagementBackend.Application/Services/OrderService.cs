@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Dtos.Responses;
+using OrderManagementBackend.Application.Dtos.Responses.Common;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Domain;
 using OrderManagementBackend.Domain.Exceptions;
@@ -21,10 +22,17 @@ namespace OrderManagementBackend.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrders()
+        public async Task<PagedResult<OrderDto>> GetOrders(OrderQuery query)
         {
-            var result = await _repository.ListOrders();
-            return _mapper.Map<IEnumerable<OrderDto>>(result);
+            var (items, totalCount) = await _repository.ListOrders(query.Status, query.Page, query.PageSize);
+
+            return new PagedResult<OrderDto>
+            {
+                Items = _mapper.Map<IReadOnlyCollection<OrderDto>>(items),
+                Page = query.Page,
+                PageSize = query.PageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<bool> CreateOrder(CreateOrderDto request)

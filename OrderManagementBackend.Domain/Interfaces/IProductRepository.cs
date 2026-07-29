@@ -2,7 +2,7 @@
 {
     public interface IProductRepository
     {
-        Task<IReadOnlyCollection<Product>> ListProducts();
+        Task<(IReadOnlyCollection<Product> Items, int TotalCount)> ListProducts(string? name, int page, int pageSize);
         Task<bool> CreateProduct(Product product);
         Task<bool> UpdateProduct(Product product);
         Task<bool> DeleteProduct(int id);

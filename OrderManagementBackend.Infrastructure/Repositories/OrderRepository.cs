@@ -17,11 +17,26 @@ namespace OrderManagementBackend.Infrastructure.Repositories
             _logger = logger;
         }
 
-        public async Task<IReadOnlyCollection<Order>> ListOrders()
+        public async Task<(IReadOnlyCollection<Order> Items, int TotalCount)> ListOrders(OrderStatus? status, int page, int pageSize)
         {
             try
             {
-                return await _context.Order.Include(x => x.OrderProducts).AsNoTracking().ToListAsync();
+                var query = _context.Order.Include(x => x.OrderProducts).AsNoTracking().AsQueryable();
+
+                if (status.HasValue)
+                {
+                    query = query.Where(x => x.Status == status.Value);
+                }
+
+                var totalCount = await query.CountAsync();
+
+                var items = await query
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return (items, totalCount);
             }
             catch (Exception ex)
             {

@@ -16,9 +16,9 @@ namespace OrderManagementBackend.Api.Controllers
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetProducts()
+        public async Task<ActionResult> GetProducts([FromQuery] ProductQuery query)
         {
-            return Ok(await _productService.GetProducts());
+            return Ok(await _productService.GetProducts(query));
         }
 
         [HttpPost("create")]
