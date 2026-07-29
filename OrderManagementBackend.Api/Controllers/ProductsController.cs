@@ -34,7 +34,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.UpdateProduct(id, request);
@@ -47,7 +47,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.DeleteProduct(id);
@@ -60,14 +60,14 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.GetProduct(id);
 
             if (result == null)
             {
-                return NotFound("The product don't exists");
+                return Problem(detail: "The product doesn't exist", statusCode: StatusCodes.Status404NotFound);
             }
 
             return Ok(result);

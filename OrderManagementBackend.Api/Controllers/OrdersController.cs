@@ -34,7 +34,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.UpdateOrder(id, request);
@@ -47,7 +47,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.DeleteOrder(id);
@@ -60,14 +60,14 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.GetOrder(id);
 
             if (result == null)
             {
-                return NotFound("The order don't exists");
+                return Problem(detail: "The order doesn't exist", statusCode: StatusCodes.Status404NotFound);
             }
 
             return Ok(result);

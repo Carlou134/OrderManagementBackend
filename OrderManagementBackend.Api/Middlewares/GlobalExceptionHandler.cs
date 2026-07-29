@@ -1,51 +1,55 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using OrderManagementBackend.Domain.Exceptions;
 
 namespace OrderManagementBackend.Api.Middlewares
 {
-    public class GlobalExceptionHandler
+    public class GlobalExceptionHandler : IExceptionHandler
     {
-        private readonly RequestDelegate _next;
+        private readonly IProblemDetailsService _problemDetailsService;
         private readonly ILogger<GlobalExceptionHandler> _logger;
 
-        public GlobalExceptionHandler(RequestDelegate next, ILogger<GlobalExceptionHandler> logger)
+        public GlobalExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<GlobalExceptionHandler> logger)
         {
-            _next = next;
+            _problemDetailsService = problemDetailsService;
             _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            try
+            var (statusCode, title, detail) = exception switch
             {
-                await _next(context);
-            }
-            catch (BusinessRuleException ex)
-            {
-                _logger.LogWarning(ex, "Business rule violation");
-                await WriteResponse(context, HttpStatusCode.Conflict, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unhandled exception ocurred");
-                await WriteResponse(context, HttpStatusCode.InternalServerError, "An unexpected error occurred");
-            }
-        }
-
-        private static Task WriteResponse(HttpContext context, HttpStatusCode statusCode, string message)
-        {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)statusCode;
-
-            var response = new
-            {
-                statusCode = context.Response.StatusCode,
-                message
+                BusinessRuleException businessRuleException => (
+                    StatusCodes.Status409Conflict,
+                    "Business rule violation",
+                    businessRuleException.Message),
+                _ => (
+                    StatusCodes.Status500InternalServerError,
+                    "An unexpected error occurred",
+                    "An unexpected error occurred. Please try again later.")
             };
 
-            var jsonResponse = JsonSerializer.Serialize(response);
-            return context.Response.WriteAsync(jsonResponse);
+            if (statusCode == StatusCodes.Status409Conflict)
+            {
+                _logger.LogWarning(exception, "Business rule violation");
+            }
+            else
+            {
+                _logger.LogError(exception, "Unhandled exception occurred");
+            }
+
+            httpContext.Response.StatusCode = statusCode;
+
+            return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = new ProblemDetails
+                {
+                    Status = statusCode,
+                    Title = title,
+                    Detail = detail
+                }
+            });
         }
     }
 }
