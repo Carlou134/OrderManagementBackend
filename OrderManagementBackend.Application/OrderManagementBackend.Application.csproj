@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderManagementBackend.Infrastructure\OrderManagementBackend.Infrastructure.csproj" />
+    <ProjectReference Include="..\OrderManagementBackend.Domain\OrderManagementBackend.Domain.csproj" />
   </ItemGroup>
 
 </Project>

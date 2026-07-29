@@ -3,6 +3,7 @@ using OrderManagementBackend.Application.Dtos.Requests.Product;
 using OrderManagementBackend.Application.Dtos.Responses;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Domain;
+using OrderManagementBackend.Domain.Exceptions;
 using OrderManagementBackend.Domain.Interfaces;
 
 namespace OrderManagementBackend.Application.Services
@@ -62,7 +63,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 var isInOrders = await _repository.IsProductInOrdersAsync(id);
 
-                if (isInOrders) throw new InvalidOperationException("Cannot delete product because it is used in existing orders");
+                if (isInOrders) throw new BusinessRuleException("Cannot delete product because it is used in existing orders");
 
                 return await _repository.DeleteProduct(id);
             }

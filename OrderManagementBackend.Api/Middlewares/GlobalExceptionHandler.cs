@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using OrderManagementBackend.Domain.Exceptions;
 
 namespace OrderManagementBackend.Api.Middlewares
 {
@@ -20,23 +21,27 @@ namespace OrderManagementBackend.Api.Middlewares
             {
                 await _next(context);
             }
+            catch (BusinessRuleException ex)
+            {
+                _logger.LogWarning(ex, "Business rule violation");
+                await WriteResponse(context, HttpStatusCode.Conflict, ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception ocurred");
-                await HandleExceptions(context, ex);
+                await WriteResponse(context, HttpStatusCode.InternalServerError, "An unexpected error occurred");
             }
         }
 
-        private static Task HandleExceptions(HttpContext context, Exception exception)
+        private static Task WriteResponse(HttpContext context, HttpStatusCode statusCode, string message)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = (int)statusCode;
 
             var response = new
             {
                 statusCode = context.Response.StatusCode,
-                message = "Internal Server Error",
-                details = exception.Message
+                message
             };
 
             var jsonResponse = JsonSerializer.Serialize(response);

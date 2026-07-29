@@ -3,6 +3,7 @@ using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Dtos.Responses;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Domain;
+using OrderManagementBackend.Domain.Exceptions;
 using OrderManagementBackend.Domain.Interfaces;
 
 namespace OrderManagementBackend.Application.Services
@@ -33,7 +34,7 @@ namespace OrderManagementBackend.Application.Services
 
             if(products.Count != productsIds.Count)
             {
-                throw new InvalidOperationException("One or more products not found");
+                throw new BusinessRuleException("One or more products not found");
             }
 
             var order = new Order
@@ -78,7 +79,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 if(order.Status == OrderStatus.Completed)
                 {
-                    throw new InvalidOperationException("Cannot modify completed orders");
+                    throw new BusinessRuleException("Cannot modify completed orders");
                 }
 
                 var productsIds = request.Products.Select(x => x.ProductId).ToList();
@@ -86,7 +87,7 @@ namespace OrderManagementBackend.Application.Services
 
                 if (products.Count != productsIds.Count)
                 {
-                    throw new InvalidOperationException("One or more products not found");
+                    throw new BusinessRuleException("One or more products not found");
                 }
 
                 order.OrderProducts.Clear();
@@ -119,7 +120,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 if(order.Status == OrderStatus.Completed)
                 {
-                    throw new InvalidOperationException("Cannot delete completed orders");
+                    throw new BusinessRuleException("Cannot delete completed orders");
                 }
 
                 return await _repository.DeleteOrder(id);
@@ -136,7 +137,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 if (order.Status == OrderStatus.Completed)
                 {
-                    throw new InvalidOperationException("Cannot change status of completed orders");
+                    throw new BusinessRuleException("Cannot change status of completed orders");
                 }
 
                 order.Status = status;
