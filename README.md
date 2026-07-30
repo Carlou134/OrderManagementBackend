@@ -1,96 +1,96 @@
 # Order Management — Backend API
 
-> API REST para gestión de órdenes y productos, construida en .NET 8 con Clean Architecture — proyecto de prueba técnica.
+> REST API for order and product management, built in .NET 8 with Clean Architecture — technical test project.
 
 ![swagger](docs/screenshots/swagger.png)
 
 ---
 
-## 🧩 Problema / Contexto
+## 🧩 Problem / Context
 
-Prueba técnica que pide un sistema de gestión de órdenes: crear/editar/eliminar órdenes, asociarles productos con cantidad y precio, y cambiar su estado (`Pending` → `InProgress` → `Completed`), con la regla de que una orden `Completed` no puede volver a modificarse. El enunciado permitía Express/Node como base, con .NET Core como bonus track — se optó directamente por .NET 8 para mostrar Clean Architecture, SOLID y buenas prácticas de una API productiva.
+Technical test that asks for an order management system: create/edit/delete orders, attach products with quantity and price, and change their status (`Pending` → `InProgress` → `Completed`), with the rule that a `Completed` order can no longer be modified. The spec allowed Express/Node as the base stack, with .NET Core as a bonus track — .NET 8 was chosen directly to showcase Clean Architecture, SOLID, and production-grade API practices.
 
 ---
 
 ## 🛠️ Stack
 
-| Capa            | Tecnología       |
+| Layer           | Technology       |
 |-----------------|------------------|
 | Backend         | .NET 8 / ASP.NET Core Web API |
 | ORM             | Entity Framework Core 8 + Pomelo.EntityFrameworkCore.MySql |
-| Base de datos   | MySQL |
-| Validación      | FluentValidation |
-| Mapeo           | AutoMapper |
-| Logging         | Serilog (JSON estructurado a consola + logging automático de requests) |
-| Auth            | Ninguna (requisito explícito del enunciado — endpoints sin login/token) |
-| Testing         | xUnit + Moq (15 tests unitarios sobre reglas de negocio) |
+| Database        | MySQL |
+| Validation      | FluentValidation |
+| Mapping         | AutoMapper |
+| Logging         | Serilog (structured JSON to console + automatic request logging) |
+| Auth            | None (explicit requirement from the spec — endpoints have no login/token) |
+| Testing         | xUnit + Moq (15 unit tests covering business rules) |
 
 ---
 
-## 🏗️ Arquitectura
+## 🏗️ Architecture
 
-Clean Architecture en 4 proyectos, con la regla de dependencias apuntando siempre hacia adentro:
+Clean Architecture across 4 projects, with the dependency rule always pointing inward:
 
 ```
-Domain          → sin dependencias (entidades, interfaces de repositorio, excepciones de dominio)
-Application     → depende solo de Domain (servicios, DTOs, validadores FluentValidation)
-Infrastructure  → depende solo de Domain (EF Core, repositorios, DbContext)
-Api             → depende de Application + Infrastructure (composition root)
+Domain          → no dependencies (entities, repository interfaces, domain exceptions)
+Application     → depends only on Domain (services, DTOs, FluentValidation validators)
+Infrastructure  → depends only on Domain (EF Core, repositories, DbContext)
+Api             → depends on Application + Infrastructure (composition root)
 ```
 
-- **Repository Pattern** (`IOrderRepository`/`IProductRepository`) para aislar el acceso a datos del resto de las capas.
-- **Auditoría automática**: interfaz `IAuditableEntity` (`CreatedAt`/`UpdatedAt`/`CreatedBy`/`UpdatedBy`) estampada centralizadamente en `OrdersContext.SaveChanges`, en vez de repetir la lógica en cada servicio.
-- **Manejo de errores unificado con `ProblemDetails`** (RFC 7807): un `IExceptionHandler` nativo de .NET 8 traduce excepciones de dominio (`BusinessRuleException`) a 409, y cualquier error inesperado a 500 sin filtrar detalles internos al cliente.
-- **Validación centralizada**: un `ValidationFilter` global resuelve automáticamente el validador de FluentValidation correspondiente a cada request, sin repetir `ValidateAsync` en cada endpoint.
-- **Paginación + filtros** en los listados (`GetOrders` por `Status`, `GetProducts` por `Name`), con límite de tamaño de página para evitar respuestas sin cota.
+- **Repository Pattern** (`IOrderRepository`/`IProductRepository`) to isolate data access from the rest of the layers.
+- **Automatic auditing**: `IAuditableEntity` interface (`CreatedAt`/`UpdatedAt`/`CreatedBy`/`UpdatedBy`) stamped centrally in `OrdersContext.SaveChanges`, instead of repeating the logic in every service.
+- **Unified error handling with `ProblemDetails`** (RFC 7807): a native .NET 8 `IExceptionHandler` translates domain exceptions (`BusinessRuleException`) to 409, and any unexpected error to 500 without leaking internal details to the client.
+- **Centralized validation**: a global `ValidationFilter` automatically resolves the matching FluentValidation validator for each request, without repeating `ValidateAsync` in every endpoint.
+- **Pagination + filtering** on the list endpoints (`GetOrders` by `Status`, `GetProducts` by `Name`), with a page size cap to prevent unbounded responses.
 
 ---
 
-## 🧠 Retos técnicos y decisiones
+## 🧠 Technical challenges and decisions
 
-- **Problema:** `Application` referenciaba directamente `Infrastructure`, violando la regla de dependencias de Clean Architecture (aunque en el código no se usaba nada de ahí). → **Solución:** se cambió la referencia de proyecto para que `Application` dependa de `Domain` directamente. → **Por qué:** Dependency Inversion — las capas internas no pueden depender de las externas, ni siquiera "sin querer".
+- **Problem:** `Application` referenced `Infrastructure` directly, violating Clean Architecture's dependency rule (even though nothing from it was actually used in code). → **Solution:** the project reference was changed so `Application` depends on `Domain` directly. → **Why:** Dependency Inversion — inner layers can't depend on outer ones, not even by accident.
 
-- **Problema:** las reglas de negocio (ej. "no modificar una orden `Completed`") se lanzaban como `InvalidOperationException`, un tipo genérico del BCL que también usa el runtime para casos totalmente ajenos — cualquier bug real que tirara esa excepción se hubiera "disfrazado" de regla de negocio y filtrado su mensaje interno al cliente. → **Solución:** excepción de dominio propia (`BusinessRuleException`), capturada específicamente por un `IExceptionHandler` que la traduce a 409, dejando el 500 solo para errores realmente inesperados. → **Por qué:** separar "esto lo rechazamos a propósito" de "esto se rompió".
+- **Problem:** business rules (e.g. "don't modify a `Completed` order") were thrown as `InvalidOperationException`, a generic BCL type also used by the runtime for completely unrelated cases — any real bug that happened to throw that same type would have been "disguised" as a business rule and leaked its internal message to the client. → **Solution:** a dedicated domain exception (`BusinessRuleException`), caught specifically by an `IExceptionHandler` that maps it to 409, leaving 500 only for genuinely unexpected errors. → **Why:** separate "we rejected this on purpose" from "this broke".
 
-- **Problema:** al editar una orden, el código borraba y recreaba todos sus `OrderProduct` (`Clear()` + lista nueva), lo que reseteaba su fecha real de creación en cada edición. → **Solución:** diff por `ProductId` — se actualizan in-place los que ya existían, se agregan los nuevos y se remueven los que ya no vienen. → **Por qué:** preservar la auditoría real sin sacrificar la simplicidad del endpoint.
+- **Problem:** editing an order deleted and recreated all of its `OrderProduct` rows (`Clear()` + a brand-new list), which reset their real creation date on every edit. → **Solution:** diff by `ProductId` — existing items are updated in place, new ones are added, and removed ones are taken out. → **Why:** preserve accurate audit data without sacrificing the simplicity of the endpoint.
 
-- **Problema:** el connection string de MySQL (con usuario y password reales) estaba commiteado en `appsettings.json`. → **Solución:** se destrackeó del repo, se agregó `appsettings.example.json` como plantilla sin secretos, y el valor real vive en User Secrets (desarrollo) o variables de entorno (producción). → **Por qué:** eliminar el secreto del control de versiones sin romper el flujo de desarrollo de nadie que clone el repo.
+- **Problem:** the MySQL connection string (with real username and password) was committed in `appsettings.json`. → **Solution:** it was untracked from the repo, `appsettings.example.json` was added as a secret-free template, and the real value now lives in User Secrets (development) or environment variables (production). → **Why:** remove the secret from version control without breaking the workflow for anyone who clones the repo.
 
 ---
 
-## 🚀 Cómo correrlo
+## 🚀 Getting started
 
-Requisitos: .NET 8 SDK, MySQL corriendo en local.
+Requirements: .NET 8 SDK, MySQL running locally.
 
 ```bash
 git clone git@github.com:Carlou134/TaskManagerBackend.git
 cd TaskManagerBackend
 
-# Configurar tu connection string local (no se commitea)
+# Set up your local connection string (not committed)
 cp OrderManagementBackend.Api/appsettings.example.json OrderManagementBackend.Api/appsettings.Development.json
-# Editar appsettings.Development.json con tus credenciales de MySQL local
+# Edit appsettings.Development.json with your local MySQL credentials
 
-# Aplicar las migraciones
+# Apply the migrations
 dotnet ef database update --project OrderManagementBackend.Infrastructure --startup-project OrderManagementBackend.Api
 
-# Correr la API
+# Run the API
 dotnet run --project OrderManagementBackend.Api
 ```
 
-La API queda disponible en `https://localhost:7197` (o el puerto que asigne tu perfil de `launchSettings.json`), con Swagger en `/swagger`.
+The API becomes available at `https://localhost:7197` (or whatever port your `launchSettings.json` profile assigns), with Swagger at `/swagger`.
 
-### Correr en Visual Studio
+### Running it in Visual Studio
 
-1. Abrir `OrderManagementBackend.Api.sln` con Visual Studio.
-2. Repite el paso del connection string local: copia `OrderManagementBackend.Api/appsettings.example.json` a `OrderManagementBackend.Api/appsettings.Development.json` y completa tus credenciales de MySQL.
-3. Aplica las migraciones desde la **Package Manager Console** (`Tools > NuGet Package Manager > Package Manager Console`), con `OrderManagementBackend.Infrastructure` como *Default project*:
+1. Open `OrderManagementBackend.Api.sln` with Visual Studio.
+2. Repeat the local connection string step: copy `OrderManagementBackend.Api/appsettings.example.json` to `OrderManagementBackend.Api/appsettings.Development.json` and fill in your MySQL credentials.
+3. Apply the migrations from the **Package Manager Console** (`Tools > NuGet Package Manager > Package Manager Console`), with `OrderManagementBackend.Infrastructure` as the *Default project*:
    ```powershell
    Update-Database -Project OrderManagementBackend.Infrastructure -StartupProject OrderManagementBackend.Api
    ```
-4. Selecciona el perfil de arranque `https` (o `http`) en el dropdown de la barra de herramientas y presiona **F5** — se abre el navegador directo en Swagger.
+4. Select the `https` (or `http`) launch profile from the toolbar dropdown and press **F5** — it opens the browser straight into Swagger.
 
 ---
 
-## 🔗 Links relacionados
+## 🔗 Related links
 
 Frontend: https://github.com/Carlou134/OrderManagementFrontEnd
