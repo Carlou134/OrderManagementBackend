@@ -21,6 +21,7 @@ Prueba técnica que pide un sistema de gestión de órdenes: crear/editar/elimin
 | Base de datos   | MySQL |
 | Validación      | FluentValidation |
 | Mapeo           | AutoMapper |
+| Logging         | Serilog (JSON estructurado a consola + logging automático de requests) |
 | Auth            | Ninguna (requisito explícito del enunciado — endpoints sin login/token) |
 | Testing         | xUnit + Moq (15 tests unitarios sobre reglas de negocio) |
 

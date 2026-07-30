@@ -11,8 +11,17 @@ using OrderManagementBackend.Domain.Interfaces;
 using OrderManagementBackend.Infrastructure.Common;
 using OrderManagementBackend.Infrastructure.Data;
 using OrderManagementBackend.Infrastructure.Repositories;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .WriteTo.Console(new CompactJsonFormatter());
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DbOrders");
 builder.Services.AddDbContext<OrdersContext>(options =>
@@ -59,6 +68,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
 
