@@ -22,7 +22,7 @@ Prueba técnica que pide un sistema de gestión de órdenes: crear/editar/elimin
 | Validación      | FluentValidation |
 | Mapeo           | AutoMapper |
 | Auth            | Ninguna (requisito explícito del enunciado — endpoints sin login/token) |
-| Testing         | xUnit + Moq *(en progreso)* |
+| Testing         | xUnit + Moq (15 tests unitarios sobre reglas de negocio) |
 
 ---
 
@@ -86,7 +86,7 @@ La API queda disponible en `https://localhost:7197` (o el puerto que asigne tu p
    ```powershell
    Update-Database -Project OrderManagementBackend.Infrastructure -StartupProject OrderManagementBackend.Api
    ```
-4. Seleccioná el perfil de arranque `https` (o `http`) en el dropdown de la barra de herramientas y presioná **F5** — se abre el navegador directo en Swagger.
+4. Selecciona el perfil de arranque `https` (o `http`) en el dropdown de la barra de herramientas y presiona **F5** — se abre el navegador directo en Swagger.
 
 ---
 
