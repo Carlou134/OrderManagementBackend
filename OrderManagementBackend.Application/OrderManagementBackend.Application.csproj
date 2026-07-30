@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.0.0" />
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderManagementBackend.Infrastructure\OrderManagementBackend.Infrastructure.csproj" />
+    <ProjectReference Include="..\OrderManagementBackend.Domain\OrderManagementBackend.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,17 +1,33 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using OrderManagementBackend.Api.Filters;
 using OrderManagementBackend.Api.Middlewares;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Application.Mappings;
 using OrderManagementBackend.Application.Services;
+using OrderManagementBackend.Application.Validators.Order;
+using OrderManagementBackend.Domain.Common;
 using OrderManagementBackend.Domain.Interfaces;
+using OrderManagementBackend.Infrastructure.Common;
 using OrderManagementBackend.Infrastructure.Data;
 using OrderManagementBackend.Infrastructure.Repositories;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .WriteTo.Console(new CompactJsonFormatter());
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DbOrders");
 builder.Services.AddDbContext<OrdersContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddScoped<ICurrentUserProvider, CurrentUserProvider>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
@@ -26,25 +42,36 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<ValidationFilter>());
+builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderDtoValidator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
         {
-            policy
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin();
-        });
+            policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+        }
+    });
 });
 
 var app = builder.Build();
 
-app.UseMiddleware<GlobalExceptionHandler>();
+app.UseSerilogRequestLogging();
+
+app.UseExceptionHandler();
 
 app.UseCors("AllowFrontend");
 

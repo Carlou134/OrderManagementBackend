@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Interfaces;
-using OrderManagementBackend.Domain;
 
 namespace OrderManagementBackend.Api.Controllers
 {
@@ -17,19 +16,14 @@ namespace OrderManagementBackend.Api.Controllers
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetOrders()
+        public async Task<ActionResult> GetOrders([FromQuery] OrderQuery query)
         {
-            return Ok(await _orderService.GetOrders());
+            return Ok(await _orderService.GetOrders(query));
         }
 
         [HttpPost("create")]
         public async Task<ActionResult> CreateOrder([FromBody] CreateOrderDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _orderService.CreateOrder(request);
 
             return (result) ? NoContent() : NotFound();
@@ -40,12 +34,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.UpdateOrder(id, request);
@@ -58,7 +47,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.DeleteOrder(id);
@@ -71,14 +60,14 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid OrderId");
+                return Problem(detail: "Invalid OrderId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _orderService.GetOrder(id);
 
             if (result == null)
             {
-                return NotFound("The order don't exists");
+                return Problem(detail: "The order doesn't exist", statusCode: StatusCodes.Status404NotFound);
             }
 
             return Ok(result);
@@ -87,11 +76,6 @@ namespace OrderManagementBackend.Api.Controllers
         [HttpPost("changestatus/{id}")]
         public async Task<ActionResult> ChangeStatus([FromBody]ChangeOrderStatusDto request, int id)
         {
-            if (!Enum.IsDefined(typeof(OrderStatus), request.status))
-            {
-                return BadRequest(new { error = "Invalid status value" });
-            }
-
             var result = await _orderService.ChangeStatus(request.status, id);
 
             return (result) ? NoContent() : NotFound();

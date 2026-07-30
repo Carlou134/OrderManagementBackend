@@ -16,19 +16,14 @@ namespace OrderManagementBackend.Api.Controllers
         }
 
         [HttpGet("list")]
-        public async Task<ActionResult> GetProducts()
+        public async Task<ActionResult> GetProducts([FromQuery] ProductQuery query)
         {
-            return Ok(await _productService.GetProducts());
+            return Ok(await _productService.GetProducts(query));
         }
 
         [HttpPost("create")]
         public async Task<ActionResult> CreateProduct([FromBody] CreateProductDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var result = await _productService.CreateProduct(request);
 
             return (result) ? NoContent() : NotFound();
@@ -39,12 +34,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.UpdateProduct(id, request);
@@ -57,7 +47,7 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.DeleteProduct(id);
@@ -70,14 +60,14 @@ namespace OrderManagementBackend.Api.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest("Invalid ProductId");
+                return Problem(detail: "Invalid ProductId", statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await _productService.GetProduct(id);
 
             if (result == null)
             {
-                return NotFound("The product don't exists");
+                return Problem(detail: "The product doesn't exist", statusCode: StatusCodes.Status404NotFound);
             }
 
             return Ok(result);

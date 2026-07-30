@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Dtos.Responses;
+using OrderManagementBackend.Application.Dtos.Responses.Common;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Domain;
+using OrderManagementBackend.Domain.Exceptions;
 using OrderManagementBackend.Domain.Interfaces;
 
 namespace OrderManagementBackend.Application.Services
@@ -20,10 +22,17 @@ namespace OrderManagementBackend.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrders()
+        public async Task<PagedResult<OrderDto>> GetOrders(OrderQuery query)
         {
-            var result = await _repository.ListOrders();
-            return _mapper.Map<IEnumerable<OrderDto>>(result);
+            var (items, totalCount) = await _repository.ListOrders(query.Status, query.Page, query.PageSize);
+
+            return new PagedResult<OrderDto>
+            {
+                Items = _mapper.Map<IReadOnlyCollection<OrderDto>>(items),
+                Page = query.Page,
+                PageSize = query.PageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<bool> CreateOrder(CreateOrderDto request)
@@ -33,7 +42,7 @@ namespace OrderManagementBackend.Application.Services
 
             if(products.Count != productsIds.Count)
             {
-                throw new InvalidOperationException("One or more products not found");
+                throw new BusinessRuleException("One or more products not found");
             }
 
             var order = new Order
@@ -78,7 +87,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 if(order.Status == OrderStatus.Completed)
                 {
-                    throw new InvalidOperationException("Cannot modify completed orders");
+                    throw new BusinessRuleException("Cannot modify completed orders");
                 }
 
                 var productsIds = request.Products.Select(x => x.ProductId).ToList();
@@ -86,22 +95,42 @@ namespace OrderManagementBackend.Application.Services
 
                 if (products.Count != productsIds.Count)
                 {
-                    throw new InvalidOperationException("One or more products not found");
+                    throw new BusinessRuleException("One or more products not found");
                 }
 
-                order.OrderProducts.Clear();
-                order.OrderProducts = request.Products.Select(x =>
-                {
-                    var product = products.First(pr => pr.Id == x.ProductId);
+                var requestedProductIds = request.Products.Select(x => x.ProductId).ToHashSet();
 
-                    return new OrderProduct
+                var itemsToRemove = order.OrderProducts
+                    .Where(x => !requestedProductIds.Contains(x.ProductId))
+                    .ToList();
+
+                foreach (var item in itemsToRemove)
+                {
+                    order.OrderProducts.Remove(item);
+                }
+
+                foreach (var requestedProduct in request.Products)
+                {
+                    var product = products.First(pr => pr.Id == requestedProduct.ProductId);
+                    var existingItem = order.OrderProducts.FirstOrDefault(x => x.ProductId == requestedProduct.ProductId);
+
+                    if (existingItem != null)
                     {
-                        ProductId = x.ProductId,
-                        Quantity = x.Quantity,
-                        UnitPrice = product.UnitPrice,
-                        TotalPrice = x.Quantity * product.UnitPrice
-                    };
-                }).ToList();
+                        existingItem.Quantity = requestedProduct.Quantity;
+                        existingItem.UnitPrice = product.UnitPrice;
+                        existingItem.TotalPrice = requestedProduct.Quantity * product.UnitPrice;
+                    }
+                    else
+                    {
+                        order.OrderProducts.Add(new OrderProduct
+                        {
+                            ProductId = requestedProduct.ProductId,
+                            Quantity = requestedProduct.Quantity,
+                            UnitPrice = product.UnitPrice,
+                            TotalPrice = requestedProduct.Quantity * product.UnitPrice
+                        });
+                    }
+                }
 
                 order.OrderNumber = request.OrderNumber;
                 order.FinalPrice = order.OrderProducts.Sum(x => x.TotalPrice);
@@ -119,7 +148,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 if(order.Status == OrderStatus.Completed)
                 {
-                    throw new InvalidOperationException("Cannot delete completed orders");
+                    throw new BusinessRuleException("Cannot delete completed orders");
                 }
 
                 return await _repository.DeleteOrder(id);
@@ -134,6 +163,11 @@ namespace OrderManagementBackend.Application.Services
 
             if (order != null)
             {
+                if (order.Status == OrderStatus.Completed)
+                {
+                    throw new BusinessRuleException("Cannot change status of completed orders");
+                }
+
                 order.Status = status;
                 return await _repository.UpdateOrder(order);
             }

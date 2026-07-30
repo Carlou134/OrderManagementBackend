@@ -17,23 +17,40 @@ namespace OrderManagementBackend.Infrastructure.Configurations
 
             builder.Property(x => x.UnitPrice).IsRequired().HasPrecision(10, 2);
 
+            builder.Property(x => x.CreatedAt).IsRequired().HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            builder.Property(x => x.UpdatedAt);
+
+            builder.Property(x => x.CreatedBy).IsRequired().HasMaxLength(100);
+
+            builder.Property(x => x.UpdatedBy).HasMaxLength(100);
+
+            var seedCreatedAt = new DateTime(2026, 1, 16, 0, 0, 0, DateTimeKind.Utc);
+            const string seedCreatedBy = "system";
+
             builder.HasData(new Product
             {
                 Id = 1,
                 Name = "Laptop Lenovo ThinkPad E14",
-                UnitPrice = 3200.00m
+                UnitPrice = 3200.00m,
+                CreatedAt = seedCreatedAt,
+                CreatedBy = seedCreatedBy
             },
                 new Product
                 {
                     Id = 2,
                     Name = "Mouse Logitech M185",
-                    UnitPrice = 75.50m
+                    UnitPrice = 75.50m,
+                    CreatedAt = seedCreatedAt,
+                    CreatedBy = seedCreatedBy
                 },
                 new Product
                 {
                     Id = 3,
                     Name = "Teclado Mecánico Redragon Kumara",
-                    UnitPrice = 249.90m
+                    UnitPrice = 249.90m,
+                    CreatedAt = seedCreatedAt,
+                    CreatedBy = seedCreatedBy
                 });
         }
     }

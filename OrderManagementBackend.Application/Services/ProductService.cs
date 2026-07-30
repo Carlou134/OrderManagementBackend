@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using OrderManagementBackend.Application.Dtos.Requests.Product;
 using OrderManagementBackend.Application.Dtos.Responses;
+using OrderManagementBackend.Application.Dtos.Responses.Common;
 using OrderManagementBackend.Application.Interfaces;
 using OrderManagementBackend.Domain;
+using OrderManagementBackend.Domain.Exceptions;
 using OrderManagementBackend.Domain.Interfaces;
 
 namespace OrderManagementBackend.Application.Services
@@ -18,10 +20,17 @@ namespace OrderManagementBackend.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetProducts()
+        public async Task<PagedResult<ProductDto>> GetProducts(ProductQuery query)
         {
-            var result = await _repository.ListProducts();
-            return _mapper.Map<IEnumerable<ProductDto>>(result);
+            var (items, totalCount) = await _repository.ListProducts(query.Name, query.Page, query.PageSize);
+
+            return new PagedResult<ProductDto>
+            {
+                Items = _mapper.Map<IReadOnlyCollection<ProductDto>>(items),
+                Page = query.Page,
+                PageSize = query.PageSize,
+                TotalCount = totalCount
+            };
         }
         public async Task<bool> CreateProduct(CreateProductDto request)
         {
@@ -62,7 +71,7 @@ namespace OrderManagementBackend.Application.Services
             {
                 var isInOrders = await _repository.IsProductInOrdersAsync(id);
 
-                if (isInOrders) throw new InvalidOperationException("Cannot delete product because it is used in existing orders");
+                if (isInOrders) throw new BusinessRuleException("Cannot delete product because it is used in existing orders");
 
                 return await _repository.DeleteProduct(id);
             }

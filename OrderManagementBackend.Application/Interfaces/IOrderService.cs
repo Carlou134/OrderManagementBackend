@@ -1,12 +1,13 @@
 ﻿using OrderManagementBackend.Application.Dtos.Requests.Order;
 using OrderManagementBackend.Application.Dtos.Responses;
+using OrderManagementBackend.Application.Dtos.Responses.Common;
 using OrderManagementBackend.Domain;
 
 namespace OrderManagementBackend.Application.Interfaces
 {
     public interface IOrderService
     {
-        Task<IEnumerable<OrderDto>> GetOrders();
+        Task<PagedResult<OrderDto>> GetOrders(OrderQuery query);
         Task<bool> CreateOrder(CreateOrderDto request);
         Task<OrderDto?> GetOrder(int id);
         Task<bool> UpdateOrder(int id, UpdateOrderDto request);

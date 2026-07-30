@@ -25,6 +25,16 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<decimal>("FinalPrice")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
@@ -41,6 +51,13 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint unsigned");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Order", (string)null);
@@ -51,6 +68,16 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -69,6 +96,13 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
@@ -84,6 +118,16 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -93,6 +137,13 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Product", (string)null);
@@ -101,18 +152,24 @@ namespace OrderManagementBackend.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
+                            CreatedAt = new DateTime(2026, 1, 16, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "system",
                             Name = "Laptop Lenovo ThinkPad E14",
                             UnitPrice = 3200.00m
                         },
                         new
                         {
                             Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 16, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "system",
                             Name = "Mouse Logitech M185",
                             UnitPrice = 75.50m
                         },
                         new
                         {
                             Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 16, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "system",
                             Name = "Teclado Mecánico Redragon Kumara",
                             UnitPrice = 249.90m
                         });
