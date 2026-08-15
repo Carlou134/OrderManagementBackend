@@ -44,6 +44,8 @@ Api             → depends on Application + Infrastructure (composition root)
 - **Centralized validation**: a global `ValidationFilter` automatically resolves the matching FluentValidation validator for each request, without repeating `ValidateAsync` in every endpoint.
 - **Pagination + filtering** on the list endpoints (`GetOrders` by `Status`, `GetProducts` by `Name`), with a page size cap to prevent unbounded responses.
 
+Database schema, relationships, and migration history: [docs/database.md](docs/database.md).
+
 ---
 
 ## 🧠 Technical challenges and decisions
